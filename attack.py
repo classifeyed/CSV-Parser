@@ -1,93 +1,57 @@
 import pandas as pd
 
-df = pd.read_csv("Attack_Scenario.csv")
+# === Load in Data ===
+df = pd.read_csv("<update.me>")
 print("="*100)
-print("="*100)
-print("First 5 and last 5 rows of file:")
-print("Data loaded successfully from file", df.head())
-print("="*100)
-print("="*100)
-# print(df.head())
-# print(df.columns)
 
+print("Last 5 and first 5 rows of file: ")
+print("Data Loaded successfully from file", "\n", df.head(), df.tail())
+
+print("="*100)
+
+# === Global lists to track selected and valid columns ===
+
+empty_columns = []
 selected_columns = []
-valid_columns = []
+event_id_search = [4634, 4624, 4672, 4616, 4662, 4769, 4768, 4799, 4648, 4776, 4771]
 
+print("Cleaning columns...")
+print("Removing empty columns...")
+
+print("="*100)
+print("="*100)
+
+# === Function to clean NaN columns and standardize column names ===
 def columns():
     empty_cols = [col for col in df.columns if df[col].isna().all()] # Identify completely empty columns
-    # num_dropped = len(empty_cols) # Count of empty columns
     cleaned = df.drop(columns=empty_cols) # Drop completely empty columns
-    cleaned_count = len(cleaned)
-    # print("Removed NaN Column Count: ", num_dropped) # Print the count of removed columns
-    # print("Dropped empty columns: ", empty_cols) # Print the names of dropped columns
-    # print("Column headers count:", cleaned_count) # Print the count of remaining columns
-    # print("Columns in the DataFrame: ", cleaned.columns.tolist()) # Print remaining columns
-    cleaned.columns = [col.lower().replace(" ", ".") for col in cleaned.columns]
+    print("Columns cleaned: ", len(empty_cols))
+    print("Dropped empty columns: ", empty_cols) # Print the names of dropped columns
+    print("="*100)
+    print("="*100)
     return cleaned
-columns()
-print("="*100)
 
-# Function to count occurrences in a specified column
-def count():
-    df_clean = columns()
 
-    while True:
-        print("You can count occurrences in any column of the file")
-        print("="*100)
-        print("Available columns are: ", df_clean.columns.tolist())
-        print("="*100)
+# === Function to pull out data ===
+def rows():
+    df_clean = columns()  # Drop rows where all elements are NaN
+    for index, row in df_clean.iterrows():
+        non_empty = row.dropna(how='all')  # Drop NaN values in the row
+        print(f"Row {index} non-empty values:\n{non_empty}\n")
+        print(non_empty.to_dict())  # Print as dictionary for clarity
+        print("="*50)
 
-        column_to_count = input("Which column would you like to count? (seperate with commas)")
-        column_list = [col.strip() for col in column_to_count.split(",")]
-        for col in column_list:
-            if col in df_clean.columns:
-                valid_columns.append(col)
+# === For loop it iteraite through event_id_search to create individual sheets ===
+def event_id_sheets(event_id_search):
+    df_clean = columns()  # clean inside the function
+    print("Creating Excel file with Event ID sheets...")
+    with pd.ExcelWriter("Event_IDs.xlsx", engine="xlsxwriter") as writer:
+        for event_id in event_id_search:
+            df_event = df_clean[df_clean['Event ID'] == event_id]
+            if not df_event.empty:
+                df_event.to_excel(writer, sheet_name=f"Event_{event_id}", index=False)
+                print(f"Added sheet: Event_{event_id} with {len(df_event)} records.")
             else:
-                print(f"Column '{col}' does not exist, this will be ignored.")
-        print("Valid columns to count: ", valid_columns)
-        if column_to_count not in selected_columns:
-            selected_columns.append(column_to_count)
-            print("Selected Columns: ", selected_columns)
-        elif column_to_count in df_clean.columns:
-            counts = df_clean[column_to_count].value_counts()
-            print(f"Count for column: '{column_to_count}':\n", counts)
-            print("="*100)
-        else:
-            print(f"Column '{column_to_count}' does not exist in the DataFrame. Please choose from the available columns.")
-            break
-        choice = input("Would you like to count another column? (yes/no): ").strip().lower()
-        if choice in ['no' or "n"]:
-            print("Exiting the column counting tool.")
-            break
-
-        
-        
-count()
-
-
-print("="*100)
-
-
-# Function to analyze the 'date.and.time' column
-def time():
-    df_clean = columns()
-    # print(df_clean["date.and.time"].head())
-    df_clean["date.and.time"] = pd.to_datetime(df_clean["date.and.time"]) # Convert to datetime
-    earliest_event = df_clean["date.and.time"].min()
-    print("Earliest Event Timestamp: ", earliest_event)
-    latest_event = df_clean["date.and.time"].max()
-    print("Latest Event Timestamp: ", latest_event)
-    duration = df_clean["date.and.time"].max() - df_clean["date.and.time"].min()
-    print("Duration Between Earliest and Latest Event: ", duration)
-    df_clean_sorted = df_clean.sort_values("date.and.time")
-    # print("Sorted DataFrame by 'date.and.time':\n", df_clean_sorted[["date.and.time"]].head())
-time()
-
-# Function to create a timeline of events
-def timeline():
-    df_clean = columns()
-    df_sorted = df_clean.sort_values("date.and.time")
-    df_story = df_sorted[["date.and.time"] + selected_columns]
-    print(df_story.head(20))
-timeline()
+                print(f"No records found for Event ID: {event_id}")
+event_id_sheets(event_id_search)
 print("="*100)
