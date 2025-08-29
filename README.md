@@ -29,7 +29,7 @@ This project parses Windows Event Log CSV exports and organizes them into indivi
 Clone the repo:
 
 ```bash
-git clone https://github.com/yourusername/csv-event-parser.git
+git clone https://github.com/classifeyed/csv-event-parser.git
 cd csv-event-parser
 ```
 
