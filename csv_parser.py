@@ -20,7 +20,7 @@ openpyxl = importlib.import_module("openpyxl")
 subprocess.check_call([sys.executable, "-m", "pip", "install", "openpyxl"]) 
 
 # === Load in Data ===
-df = pd.read_csv("Attack_Scenario.csv")
+df = pd.read_csv("UPDATE_ME")
 print("="*100)
 
 print("First 5 and Last 5 rows of file: ")
@@ -80,4 +80,5 @@ def event_id_sheets(event_id_search):
                 print(f"No records found for Event ID: {event_id}")
 event_id_sheets(event_id_search)
 print("="*100)
+
 
